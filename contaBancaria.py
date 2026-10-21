@@ -1,47 +1,71 @@
-class BankAccount:
-    def __init__(self, number_account:int, name:str, initial_value=0.0):
-        self._number_account = number_account
-        self._name = name
-        self._balance = initial_value
+class AlertaErro(Exception):
+    pass
+
+class Account:
+    def __init__(self, number:int, holder:str, balance:float, withdraw_limit:float):
+        if number <= 0:
+            raise AlertaErro("Number account must be greater than zero")
+
+        if not holder.strip():
+            raise AlertaErro("Account holder cannot be empty")
+
+        if(balance < 0):
+            raise AlertaErro("Initial balance cannot be negative")
+
+        if(withdraw_limit < 0):
+            raise AlertaErro("Withdraw limit cannot be negative")
+
+        self._number = number
+        self._holder = holder
+        self._balance = balance
+        self._withdraw_limit = withdraw_limit
 
     @property
-    def name(self):
-        return self._name
+    def number(self):
+        return self._number
+    
+    @property
+    def holder(self):
+        return self._holder
+    
+    @property
+    def balance(self):
+        return self._balance
+    
+    @property
+    def withdraw_limit(self):
+        return self._withdraw_limit
 
-    @name.setter
-    def name(self, name:str):
-        self._name = name
+    def deposit(self, amount:float) -> None:
+        if amount <= 0:
+            raise AlertaErro("Deposit error: the amount must be greater than zero")
+        self._balance += amount
 
-    def deposit(self, deposit_value:float):
-        if deposit_value > 0:
-            self._balance += deposit_value
+    def withdraw(self, amount:float) -> None:
+        if amount <= 0:
+            raise AlertaErro("Withdraw error: amount must be greater than zero")
+        if amount > self._withdraw_limit:
+            raise AlertaErro("Withdraw error: The amount exceeds withdraw limit")
+        if amount > self._balance:
+            raise AlertaErro("Withdraw error: Not enough balance")
+        self._balance -= amount
 
-    def withdraw(self, withdraw_value:float):
-        if withdraw_value > 0:
-            self._balance -= (withdraw_value + 5.0)
+print("Enter account data")
 
-    def __str__(self):
-        return f"Account {self._number_account}, Holder: {self._name}, Balance: $ {self._balance:.2f}"
+try:
+    number = int(input("Number: "))
+    holder = input("Holder: ")
+    initial_balance = float(input("Initial balance: "))
+    withdraw_limit = float(input("Withdraw limit: "))
+    acc = Account(number, holder, initial_balance, withdraw_limit)
+except (ValueError, AlertaErro) as e:
+    print(e)
+else:   
+    amount = float(input("\nEnter amount for withdraw: "))
 
-number_account = int(input("Enter account number: "))
-name = input("Enter account holder: ").title()
-choice = input("Is there an initial deposit? ")
-
-if choice.lower() == 'y':
-    initial_value = float(input("Enter initial deposit value: "))
-    ba = BankAccount(number_account, name, initial_value)
-else:
-    ba = BankAccount(number_account, name)
-
-print('\nAccount data: ')
-print(ba, "\n")
-
-deposit_value = float(input("\nEnter a deposit value: "))
-ba.deposit(deposit_value)
-print('\nUpdated account data: ')
-print(ba, "\n")
-
-withdraw_value = float(input("\nEnter a withdraw value: "))
-ba.withdraw(withdraw_value)
-print('\nUpdated account data: ')
-print(ba, "\n")
+    try:
+        acc.withdraw(amount)
+    except AlertaErro as e:
+        print(e)
+    else:
+        print(f"New balance: {acc.balance:.2f}")
